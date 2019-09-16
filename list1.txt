@@ -1,0 +1,100 @@
+// ConsoleApplication4.cpp: 콘솔 응용 프로그램의 진입점을 정의합니다.
+//
+
+#include "stdafx.h"
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+
+int a1(int n1); //英文を0~26に変えてくれる関数
+int a2(int n1, int n2, int n3, int n4); //暗号文の計算をしてくれる関数
+int a3(int n1, int n2); //逆行列計算関数
+
+int main()
+{
+	char str[100] = { 0 }; //平文貯蔵配列
+	char str2[100] = { 0 }; //暗号文の保存配列
+	int key[2][2] = { 0 }; //暗号化キー
+	int in_key[2][2] = { 0 }; //復号キー
+
+	printf("暗号化する平文入力(英文) : ");
+	gets_s(str, 100);
+	int leg = strlen(str);
+
+	printf("暗号化キー4つの入力(素數) : ");
+	scanf_s("%d %d %d %d", &key[0][0], &key[0][1], &key[1][0], &key[1][1]);
+
+	for (int i = 0; i < leg; i++) // 文字列変換
+		str[i] = a1(str[i]);
+	int div = key[0][0] * key[1][1] - key[0][1] * key[1][0];//逆行列計算式
+	in_key[0][0] = a3(key[1][1], div);
+	in_key[0][1] = a3(-key[0][1], div);
+	in_key[1][0] = a3(-key[1][0], div);
+	in_key[1][1] = a3(key[0][0], div);
+
+	for (int i = 1; i < leg; i += 2)
+	{
+		str2[i - 1] = a2(key[0][0], str[i - 1], key[0][1], str[i]);
+		str2[i] = a2(key[1][0], str[i - 1], key[1][1], str[i]);
+	}
+	printf("\n暗号文 : ");//暗号文出力
+	for (int i = 0; i < leg; i++)
+	{
+		str2[i] += 65;
+		printf("%c ", str2[i]);
+	}
+	printf("\n復号キー \n"); //復号キー出力
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < 2; j++)
+		{
+			printf("%3d", in_key[i][j]);
+		}printf("\n");
+	}printf("\n");
+	printf("\n復号する暗号文(英語大文字) : ");
+
+	for (int i = 0; i < leg; i++) printf("%c", str2[i]); printf("\n");
+
+	for (int i = 0; i < leg; i++)//文字列変換
+		str2[i] = a1(str2[i]);
+	for (int i = 1; i < leg; i += 2) //暗号化式と同じ
+	{
+		str[i - 1] = a2(in_key[0][0], str2[i - 1], in_key[0][1], str2[i]);
+		str[i] = a2(in_key[1][0], str2[i - 1], in_key[1][1], str2[i]);
+	}
+	printf("\n平文(英語) : ");
+	for (int i = 0; i < leg; i++) //元の平文出力
+	{
+		str[i] += 65;
+		printf("%c ", str[i]);
+	}printf("\n");
+
+	return 0;
+}
+
+
+
+int a1(int n1)
+{
+	if (n1 >= 97 && n1 <= 122) //小文字の場合
+		n1 -= 97;
+	else if (n1 >= 65 && n1 <= 90)
+		n1 -= 65; //大文字の場合
+	else
+		n1 = 23; //特殊文字を「X」で取り扱う
+
+	return n1;
+}
+int a2(int n1, int n2, int n3, int n4) //暗号文計算式
+{
+	int a = (n1 * n2 + n3 * n4) % 26;
+	return a;
+}
+int a3(int n1, int n2) //逆行列計算式
+{
+	int a = n1 / n2;
+	if (a < 0) a += 26;
+	return a;
+}
+
+// RSA 暗号化アルゴリズムです。 しかし、Visual Studioで復号キーの数字が高い場合は認識できず、出力が正常にできません。
